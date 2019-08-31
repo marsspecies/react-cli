@@ -1,0 +1,243 @@
+const webpack = require('webpack');
+const path = require('path');
+
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+
+
+const paths = require('./paths');
+const babelConf = require('./babel.config');
+
+
+module.exports = env => {
+    const isEnvDevelopment = env.NODE_ENV === 'development';
+    const isEnvProduction = env.NODE_ENV === 'production';
+    const publicPath = isEnvDevelopment ? '/' : '/';
+
+    const getStyleLoaders = (cssLoaderOptions, preLoaderProcessor) => {
+        const loaders = [];
+        isEnvDevelopment && loaders.push('style-loader');
+        isEnvProduction && loaders.push({
+            loader: MiniCssExtractPlugin.loader
+        });
+        loaders.push({
+            loader: 'css-loader',
+            options: Object.assign({
+                sourceMap: true
+            }, cssLoaderOptions)
+        });
+        if (preLoaderProcessor) {
+            loaders.push({
+                loader: require.resolve(preLoaderProcessor),
+                options: {
+                    sourceMap: isEnvProduction ? true : false,
+                    javascriptEnabled: true
+                }
+            });
+        }
+        return loaders;
+    };
+
+    return {
+        context: path.resolve(__dirname, '../'),
+        entry: {
+            index: paths.appIndexjs,
+            vendors: ['react', 'react-dom']
+        },
+        output: {
+            filename:
+                isEnvProduction
+                    ? 'js/[name]_[contenthash:8].js'
+                    : 'js/[name].js',
+            chunkFilename:
+                isEnvProduction
+                    ? 'js/[name]_[contenthash:8].js'
+                    : 'js/[name].js',
+            path: paths.appBuild,
+            publicPath: publicPath,
+            crossOriginLoading: 'anonymous'
+        },
+        resolve: {
+            alias: {
+                'pages': path.resolve(__dirname, '../src/pages'),
+                'utils': path.resolve(__dirname, '../src/utils'),
+                'components': path.resolve(__dirname, '../src/components'),
+                'images': path.resolve(__dirname, '../src/images'),
+                'style': path.resolve(__dirname, '../src/style'),
+                'routes': path.resolve(__dirname, '../src/routes')
+            },
+            extensions: ['.js', '.jsx', '.ts', '.tsx']
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.html$/,
+                    use: [
+                        'file-loader',
+                        'extract-loader',
+                        {
+                            loader: 'html-loader',
+                            options: {
+                                minimize: true,
+                                removeComments: false,
+                                collapseWhitespace: false,
+                                root: path.resolve(__dirname, 'assets'),
+                                attrs: ['link:href']
+                            }
+                        }
+                    ]
+                },
+                {
+                    test: /\.css$/,
+                    exclude: /\.module.css$/,
+                    sideEffects: true,
+                    use: getStyleLoaders()
+                },
+                {
+                    test: /\.less$/,
+                    exclude: /\.module.less$/,
+                    sideEffects: true,
+                    use: getStyleLoaders({}, 'less-loader')
+                },
+                {
+                    test: /\.(jpg|png|jpeg|gif)$/,
+                    use: [
+                        {
+                            loader: 'url-loader',
+                            options: {
+                                limit: 10000,
+                                name: '[name]_[hash:8].[ext]',
+                                outputPath: 'assets/images',
+                                publicPath: `${publicPath}assets/images/`
+                            }
+                        }
+                    ]
+                },
+            {{#if ifAddEslint}}
+                {
+                    test: /\.(js|mjs|jsx|ts|tsx)$/,
+                    include: path.appSrc,
+                    enforce: 'pre',
+                    loader: require.resolve('eslint-loader')
+                },
+            {{/if}}
+            {{#if ifAddTs}}
+                {
+                    test: /\.(ts|tsx)$/,
+                    include: path.appSrc,
+                    loader: require.resolve('ts-loader')
+                },
+            {{/if}}
+            {{#if ifAddTslint}}
+                {
+                    test: /\.(ts|tsx)$/,
+                    include: path.appSrc,
+                    loader: require.resolve('tslint-loader')
+                },
+            {{/if}}
+                {
+                    test: /\.(js|mjs|jsx|ts|tsx)$/,
+                    include: paths.appSrc,
+                    loader: require.resolve('babel-loader'),
+                    options: {
+                        presets: babelConf.presets,
+                        plugins: babelConf.plugins
+                    }
+                }
+            ]
+        },
+        optimization: {
+            minimize: isEnvProduction,
+            minimizer: [
+                new TerserPlugin({
+                    cache: true,
+                    parallel: true,
+                    sourceMap: true
+                })
+            ],
+            splitChunks: {
+                chunks: 'all',
+                name: true,
+                maxAsyncRequests: 5,
+                maxInitialRequests: 3,
+                automaticNameDelimiter: '_',
+                cacheGroups: {
+                    vendors: {
+                        name: 'vendors',
+                        test: /[\\/]node_modules[\\/]/,
+                        priority: -10,
+                        minSize: 0
+                    },
+                    commons: {
+                        name: 'commons',
+                        priority: -20,
+                        reuseExistingChunk: true,
+                        minSize: 30000,
+                        minChunks: 2
+                    },
+                    default: {
+                        priority: -30,
+                        reuseExistingChunk: true,
+                        minSize: 10000,
+                        minChunks: 2
+                    }
+                }
+
+            }
+        },
+        plugins: [
+            new HtmlWebpackPlugin(
+                Object.assign({
+                    title: 'this is a webpack-demo',
+                    template: paths.appTemplate,
+                    filename: 'index.html',
+                    inject: true,
+                    templateParameters: {
+                        title: 'this is a webpack-demo',
+                        author: 'zhangjing'
+                    },
+                    // 使用CSP内容安全策略
+                    meta: {
+
+                        /* 'Content-Security-Policy': { 'http-equiv': 'Content-Security-Policy', 'content': 'default-src https:' },
+                        // Will generate: <meta http-equiv="Content-Security-Policy" content="default-src https:">
+                        // Which equals to the following http header: `Content-Security-Policy: default-src https:`
+                        'set-cookie': { 'http-equiv': 'set-cookie', content: 'name=value; expires=date; path=url' },
+                        // Will generate: <meta http-equiv="set-cookie" content="value; expires=date; path=url">
+                        // Which equals to the following http header: `set-cookie: value; expires=date; path=url` */
+                    }
+
+                },
+                isEnvProduction ? {
+                    minify: {
+                        removeComments: true,
+                        collapseWhitespace: false,
+                        removeRedundantAttributes: true,
+                        useShortDoctype: false,
+                        removeEmptyAttributes: true,
+                        removeStyleLinkTypeAttributes: true,
+                        keepClosingSlash: true,
+                        minifyJS: true,
+                        minifyCSS: true,
+                        minifyURLs: true
+                    }
+                } : {}
+                )),
+            new MiniCssExtractPlugin({
+                filename:
+                    env.NODE_ENV === 'production'
+                        ? 'assets/style/[name].[contenthash].css'
+                        : 'assets/[name].css',
+                chunkFilename:
+                    env.NODE_ENV === 'production'
+                        ? 'assets/style/[id].[contenthash].css'
+                        : 'assets/[id].css'
+            }),
+
+            // 查看要修补(patch)的依赖
+            new webpack.NamedModulesPlugin()
+
+        ]
+    };
+};

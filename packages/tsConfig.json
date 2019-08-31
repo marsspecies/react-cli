@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+      "allowSyntheticDefaultImports": true,
+      "experimentalDecorators": true,
+      "baseUrl": ".",
+      "outDir": "./dist/",
+      "sourceMap": true,
+      "noImplicitAny": true,
+      "module": "commonjs",
+      "target": "es5",
+      "jsx": "react",
+      "typeRoots": [
+        "node_modules/@types"
+      ],
+      "paths": {
+        "lodash/*": [
+          "node_modules/@types/lodash-es/*"
+        ]
+      }
+    },
+    "include": [
+      "src/**/*"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }

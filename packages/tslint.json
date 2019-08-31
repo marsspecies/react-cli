@@ -1,0 +1,165 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {
+        "no-unused-expression": true
+    },
+    "linterOptions": {
+        "exclude": [
+            "**/node_modules/**"
+        ]
+    },
+    "rules": {
+        "align": [
+            true,
+            "parameters",
+            "statements"
+        ],
+        "array-type": false,
+        "arrow-parens": false,
+        "curly": true,
+        "eofline": false,
+        "forin": true,
+        "indent": [
+            true,
+            "spaces",
+            4
+        ],
+        "interface-name": [
+            true,
+            "never-prefix"
+        ],
+        "label-position": true,
+        "linebreak-style": [
+            true,
+            "CRLF"
+        ],
+        "max-classes-per-file": false,
+        "max-file-line-count": [
+            true,
+            1000
+        ],
+        "max-line-length": [
+            true,
+            160
+        ],
+        "member-access": [
+            true,
+            "check-accessor"
+        ],
+        "member-ordering": [
+            false
+        ],
+        "new-parens": true,
+        "no-consecutive-blank-lines": true,
+        "no-console": [
+            false,
+            "log",
+            "error"
+        ],
+        "no-construct": true,
+        "no-debugger": true,
+        "no-duplicate-variable": [
+            true,
+            "check-parameters"
+        ],
+        "no-empty": [
+            true,
+            "allow-empty-catch"
+        ],
+        "no-empty-interface": false,
+        "no-eval": true,
+        "no-invalid-this": [
+            true,
+            "check-function-in-method"
+        ],
+        "no-shadowed-variable": [
+            true,
+            {
+                "class": true,
+                "enum": true,
+                "function": true,
+                "interface": false,
+                "namespace": true,
+                "typeAlias": false,
+                "typeParameter": false
+            }
+        ],
+        "no-switch-case-fall-through": true,
+        "no-trailing-whitespace": [
+            true,
+            "ignore-jsdoc",
+            "ignore-comments",
+            "ignore-blank-lines"
+        ],
+        "no-unused-expression": [
+            true,
+            "allow-fast-null-checks"
+        ],
+        "no-unused-variable": [
+            true,
+            {
+                "ignore-pattern": "^_"
+            }
+        ],
+        "no-use-before-declare": true,
+        "no-var-keyword": true,
+        "object-literal-key-quotes": [
+            true,
+            "as-needed"
+        ],
+        "object-literal-sort-keys": false,
+        "one-line": false,
+        "one-variable-per-declaration": [
+            true,
+            "ignore-for-loop"
+        ],
+        "no-duplicate-super": true,
+        "no-return-await": true,
+        "prefer-const": [
+            true,
+            {
+                "destructuring": "all"
+            }
+        ],
+        "quotemark": [
+            true,
+            "single",
+            "avoid-escape",
+            "avoid-template"
+        ],
+        "radix": true,
+        "semicolon": [
+            true,
+            "always"
+        ],
+        "switch-default": true,
+        "trailing-comma": false,
+        "triple-equals": [
+            true,
+            "allow-undefined-check"
+        ],
+        "variable-name": [
+            true,
+            "allow-pascal-case"
+        ],
+        "no-string-literal": false,
+        "no-require-imports": true,
+        "only-arrow-functions": [
+            true,
+            "allow-declarations",
+            "allow-named-functions"
+        ],
+        "jsdoc-format": [
+            true,
+            "check-multiline-start"
+        ],
+        "switch-final-break": [
+            true,
+            "always"
+        ]
+    },
+    "rulesDirectory": []
+}

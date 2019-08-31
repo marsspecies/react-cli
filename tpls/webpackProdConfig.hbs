@@ -1,0 +1,39 @@
+
+const webpack = require('webpack');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const optimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
+const paths = require('./paths');
+const merge = require('webpack-merge');
+
+const mergeStrategy = merge.strategy({
+    'entry.vendor': 'prepend',
+    plugins: 'append',
+    'module.rules': "append",
+    'output.path': 'replace',
+    'output.publicPath': 'replace'
+});
+
+module.exports = (env) => {
+    const baseConfig = require('./webpack.config')(env);
+    const prodConfig = {
+        mode: 'production',
+        plugins: [
+            new CleanWebpackPlugin({
+                root: paths.appBuild,
+                verbose: true,
+                dry: false
+            }),
+            new optimizeCSSAssetsPlugin({
+                assetNameRegExp: /\.css$/g,
+                cssProcessor: require('cssnano'),
+                cssProcessorOptions: { discardComments: { removeAll: true } },
+                canPrint: true
+            }),
+            new webpack.HashedModuleIdsPlugin(),
+            new BundleAnalyzerPlugin()
+        ]
+    };
+    return mergeStrategy(baseConfig, prodConfig);
+}

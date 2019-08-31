@@ -1,0 +1,33 @@
+{
+    "name": "{{name}}",
+    "version": "1.0.0",
+    "main": "src/index.js",
+    "scripts": {
+        "dev": "node scripts/start.js --inspect",
+        "build": "node scripts/build.js"
+    },
+    "author": "zhangjing",
+    "license": "ISC",
+    "dependencies": {
+        {{#each deps}}
+        "{{this.depName}}": "{{this.version}}"{{this.comma}}
+        {{/each}}
+    },
+    "devDependencies": {
+        "react-hot-loader": "next"
+    },
+    "babel": {
+        "presets": [
+            [
+                "react-app",
+                {
+                    "flow": false,
+                    "typescript": true
+                }
+            ]
+        ],
+        "plugins": [
+            "react-hot-loader/babel"
+        ]
+    }
+}

@@ -1,0 +1,34 @@
+const webpack = require('webpack');
+
+const merge = require('webpack-merge');
+
+module.exports = env => {
+    const baseConfig = require('./webpack.config')(env);
+
+    const mergeStrategy = merge.strategy({
+        'output.path': 'replace',
+        'output.publicPath': 'replace',
+        plugins: 'append',
+        'module.rules': 'append'
+    });
+    const devConfig = {
+        mode: 'development',
+        devtool: 'inline-source-map',
+        devServer: {
+            contentBase: './',
+            open: true,
+            inline: true,
+            historyApiFallback: true,
+            hot: true,
+            watchOptions: {
+                ignored: /node_modules/,
+                aggregateTimeout: 300,
+                poll: 500
+            }
+        },
+        plugins: [
+            new webpack.HotModuleReplacementPlugin()
+        ]
+    };
+    return mergeStrategy(baseConfig, devConfig);
+};
