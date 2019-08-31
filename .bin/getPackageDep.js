@@ -92,6 +92,9 @@ module.exports = function (config = {}) {
     if (ifAddRedux) {
         dependencies = Object.assign({}, dependencies, reduxPackageDep);
     }
+    if (ifAddMobx || ifAddTs) {
+        dependencies["@babel/plugin-proposal-decorators"] = "^7.4.4";
+    }
     let arrDeps = Object.keys(dependencies).map((dep, i, arr) => {
         return {depName: dep, version: dependencies[dep], comma: i !== arr.length - 1 ? ',' : ''};
     });
