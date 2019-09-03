@@ -35,26 +35,23 @@ function removeDir(dirPath) {
  * @param {string} githubUrl 下载地址
  */
 function getGitDemoPackages(dirPath, githubUrl) {
-    const downloadUrl = githubUrl || config.reactCliTplUrlForGithub;
-    if (fs.existsSync(dirPath) && fs.readdirSync(`${dirPath}`).length > 0) {
-        return;
-    } else if (fs.existsSync(dirPath)) {
-        // shell.cd(dirPath);
-    } else {
-        fs.mkdirSync(dirPath);
-        // shell.cd(dirPath);
-    }
-    if (shell.which('git')) {
-        // shell.exec('git init');
-        // console.log(logSymbols.info, chalk.cyan('loading start...'));
-        // shell.exec(`git clone ${downloadUrl}`);
-        // shell.cd('..');
-        download('github:marsspecies/react-cli-template#master', dirPath, function(err) {
-            console.log('222===', err);
-        });
-    } else {
-        throw new Error('please install git ');
-    }
+    return new Promise((resolve, reject) => {
+        const downloadUrl = githubUrl || config.reactCliTplStoreNameForGithub;
+        if (fs.existsSync(dirPath) && fs.readdirSync(`${dirPath}`).length > 0) {
+            resolve();
+            return;
+        } else if (fs.existsSync(dirPath)) {
+        } else {
+            fs.mkdirSync(dirPath);
+        }
+        if (shell.which('git')) {
+            download(downloadUrl, dirPath, function(err) {
+                resolve();
+            });
+        } else {
+            reject(new Error('please install git '));
+        }
+    });
 }
 
 /**

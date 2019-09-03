@@ -6,21 +6,22 @@ const logSymbols = require('log-symbols');
 const chalk = require('chalk');
 const {getGitDemoPackages, loadingAnimate} = require('../utils/utils');
 const getDeps = require('./getPackageDep');
+const ora = require('ora');
+const child_process = require('child_process');
+
+
 
 module.exports = async answer => {
     const outDir = path.resolve(process.cwd(), answer.projectName);
     const {deps, config} = getDepsAndConfigFromAnswer(answer);
-    let taskLoadDefaultFiles = task(function() {
-        loadingAnimate();
+    // 将packages下的配置文件拷贝到生成的项目下
+    await task(async function() {
         shell.cd(path.resolve(__dirname, '../packages'));
         shell.cp('-R', './', outDir);
+        return true
     });
-
-    let taskLoadConfigWebpack = task(function() {
-        loadingAnimate({
-            text: 'Generatings...',
-            spinner: 'line'
-        });
+    // 将模版编译输出到项目下
+    await task(async function() {
         const outputWebpackConfigTpl = fs.readFileSync(path.resolve(__dirname, '../tpls/webpackConfig.hbs')).toString();
         const outputWebpackDevConfigTpl = fs.readFileSync(path.resolve(__dirname, '../tpls/webpackDevConfig.hbs')).toString();
         const outputWebpackProdConfigTpl = fs.readFileSync(path.resolve(__dirname, '../tpls/webpackProdConfig.hbs')).toString();
@@ -34,14 +35,15 @@ module.exports = async answer => {
         fs.writeFileSync(`${outDir}/config/webpack.prod.config.js`, outputWebpackProdConfigTpl);
         fs.writeFileSync(`${outDir}/config/paths.js`, outputPathsTpl);
         fs.writeFileSync(`${outDir}/config/babel.config.js`, outputBabelConfigTpl);
+        return true;
+    }, {
+        text: 'Generatings...',
+        spinner: 'line'
     });
     
-    let taskLoadGitDemoPackages = task(function() {
-        loadingAnimate({
-            text: 'Fetching packages...',
-            spinner: 'runner'
-        });
-        getGitDemoPackages(path.resolve(__dirname, '../gitPackages'));
+    // 从github上面下载模版并根据用户输入配置项进行编译
+    await task(async function() {
+        await getGitDemoPackages(path.resolve(__dirname, '../gitPackages'));
         fs.mkdirSync(`${outDir}/src`);
         shell.cd(path.resolve(__dirname, '../gitPackages'));
         shell.cp('-R', './', `${outDir}/src`);
@@ -49,13 +51,14 @@ module.exports = async answer => {
         const appJs = handlebars.compile(appTpl)(config);
         fs.writeFileSync(`${outDir}/src/pages/app.js`, appJs);
         shell.rm(`${outDir}/src/pages/app.hbs`);
+        return true;
+    }, {
+        text: 'Fetching packages...',
+        spinner: 'runner'
     });
 
-    let taskLoadPackageJsonDeps = task(function() {
-        loadingAnimate({
-            text: 'Installing dependencies...',
-            spinner: 'runner'
-        });
+    // 根据用户配置安装依赖
+    await task(async function() {
         const name = answer.projectName;
         const outputPackageTpl = fs.readFileSync(path.resolve(__dirname, '../tpls/package.hbs')).toString();
         const outputPackage = handlebars.compile(outputPackageTpl)({
@@ -64,20 +67,37 @@ module.exports = async answer => {
         });
         fs.writeFileSync(`${outDir}/package.json`, outputPackage);
         shell.cd(outDir);
-        installDeps(outDir);
+        return new Promise(resolve => {
+            installDeps(outDir, function() {
+                resolve(true);
+            });
+        });
+    }, {
+        text: 'Installing dependencies...',
+        spinner: 'runner'
     });
-    
-    Promise.all([taskLoadGitDemoPackages, taskLoadConfigWebpack, taskLoadDefaultFiles, taskLoadPackageJsonDeps]).then(function() {
-        console.log(logSymbols.success, chalk.green('compeleted'));
-    });
+    // 完成项目输出
+    console.log(logSymbols.success, chalk.green('compeleted'));
+    process.exit(1);
 }
 
 /**
  * 创建异步任务
  * @param {Function} cb 
  */
-async function task(cb = () => {}) {
-    cb();
+async function task(cb = async () => {return true}, animate = {}) {
+    const spinner = ora({
+        text: chalk.cyan(animate.text || 'loading project...') + '\n',
+        spinner: animate.spinner || 'dots'
+    }).start();
+    let status = await cb();
+    // 这里的分隔符是为了防止spinner.stop()时将上一行输出删除，而默认删除分隔符这一次console
+    console.log('=====================');
+    if (status) {
+        spinner.stop();
+        console.log(logSymbols.success, chalk.green(`${animate.text || 'loading project...'} finished`));
+    }
+    return true;
 }
 
 /**
@@ -85,13 +105,16 @@ async function task(cb = () => {}) {
  * @param {Object} deps 依赖对象，键值对，键名为依赖名，健值为版本号
  * @param {string} dirPath 安装目录,默认安装在创建项目的文件夹下
  */
-function installDeps (deps, dirPath) {
+function installDeps (dirPath, cb) {
     const installPath = dirPath || process.cwd();
-    // let strDeps = Object.keys(deps).map(depName => {
-    //     return `${depName}@${deps[depName]}`;
-    // });
-    shell.cd(installPath);
-    shell.exec('npm install');
+    let child = child_process.fork(path.resolve(__dirname, './installDependencies.js'));
+    child.send({cwd: installPath});
+    child.on('message', function(msg) {
+        if (msg.status === 'success') {
+            cb && cb();
+        }
+    });
+    
 }
 
 /**

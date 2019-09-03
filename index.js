@@ -7,6 +7,7 @@ const inquirer = require('inquirer');
 const shell = require('shelljs');
 const chalk = require('chalk');
 const outputProject = require('./.bin/outputProject');
+const ora = require('ora');
                       
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, './package.json'), 'utf-8'));
 commader.version(packageJson.version, '-v --version');
@@ -16,6 +17,7 @@ commader.command('upgrage [version]').action(function (name) {
 
 
 commader.command('init <name>').action(async name => {
+    
     const initPrompt = (cb = answers => {return answers}) => {
         return inquirer.prompt([
             {
