@@ -45,7 +45,7 @@ commander.command('init <name>').action(async name => {
                         value: 'mobx'
                     },
                     {
-                        name: 'redux（babel, eslint, redux）',
+                        name: 'redux（babel, tslint, redux）',
                         value: 'redux'
                     },
                     {

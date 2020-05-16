@@ -144,7 +144,7 @@ function getDepsAndConfigFromAnswer (answer) {
             break;
         case 'redux':
             config = Object.assign({}, config, {
-                ifAddEslint: true,
+                ifAddTslint: true,
                 ifAddRedux: true
             });
             deps = getDeps(config);
