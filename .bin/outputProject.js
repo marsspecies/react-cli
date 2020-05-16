@@ -48,7 +48,6 @@ module.exports = async answer => {
         shell.cd(path.resolve(__dirname, '../gitPackages'));
         shell.cp('-R', './', `${outDir}/src`);
         const appTpl = fs.readFileSync(path.resolve(`${outDir}/src/pages/app.hbs`)).toString();
-        console.log(appTpl)
         const appJs = handlebars.compile(appTpl)(config);
         fs.writeFileSync(`${outDir}/src/pages/app.js`, appJs);
         shell.rm(`${outDir}/src/pages/app.hbs`);

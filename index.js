@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const commader = require('commander');
+const commander = require('commander');
 const inquirer = require('inquirer');
 const shell = require('shelljs');
 const chalk = require('chalk');
@@ -10,13 +10,13 @@ const outputProject = require('./.bin/outputProject');
 const ora = require('ora');
                       
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, './package.json'), 'utf-8'));
-commader.version(packageJson.version, '-v --version');
-commader.command('upgrage [version]').action(function (name) {
+commander.version(packageJson.version, '-v --version');
+commander.command('upgrade [version]').action(function (name) {
     shell.exec('npm install react-cli -g');
 });
 
 
-commader.command('init <name>').action(async name => {
+commander.command('init <name>').action(async name => {
     
     const initPrompt = (cb = answers => {return answers}) => {
         return inquirer.prompt([
@@ -153,15 +153,15 @@ commader.command('init <name>').action(async name => {
 });
 
 if (!process.argv.slice(2).length) {
-    commader.outputHelp(function(text){
+    commander.outputHelp(function(text){
         return chalk.cyan(text);
     });
 }
 
 // error on unknown commands
-commader.on('command:*', function () {
-    console.error('Invalid command: %s\nSee --help for a list of available commands.', commader.args.join(' '));
+commander.on('command:*', function () {
+    console.error('Invalid command: %s\nSee --help for a list of available commands.', commander.args.join(' '));
     process.exit(1);
 });
 
-commader.parse(process.argv);
+commander.parse(process.argv);
