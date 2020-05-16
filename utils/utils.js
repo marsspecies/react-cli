@@ -46,7 +46,12 @@ function getGitDemoPackages(dirPath, githubUrl) {
         }
         if (shell.which('git')) {
             download(downloadUrl, dirPath, function(err) {
-                resolve();
+                if (err) {
+                    console.log(err, '------------')
+                    reject(new Error(err))
+                } else {
+                    resolve();
+                }
             });
         } else {
             reject(new Error('please install git '));
